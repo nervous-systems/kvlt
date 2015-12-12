@@ -1,0 +1,20 @@
+language: clojure
+sudo: required
+dist: trusty
+jdk:
+  - oraclejdk8
+env:
+  global:
+    - CHROME_BIN=chromium-browser
+    - DISPLAY=:99.0
+addons:
+  firefox: latest
+before_install:
+  - nvm install 5
+  - npm install -g karma karma-cli karma-chrome-launcher karma-firefox-launcher karma-cljs-test
+  - sh -e /etc/init.d/xvfb start
+  - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein && chmod +x lein
+  - lein npm install
+  - lein test-server &
+  - while ! nc -q 1 localhost 5000 </dev/null; do sleep 10; done
+script: ./lein test && ./lein doo node node-test once && ./lein doo chrome generic-test once && ./lein doo firefox generic-test once
