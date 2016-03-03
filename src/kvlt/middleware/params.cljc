@@ -3,7 +3,8 @@
             [kvlt.middleware.util :as util
              #? (:clj :refer :cljs :refer-macros) [defmw]]
             [kvlt.middleware.util :as util
-             :refer [->mw ->content-type url-encode charset]]))
+             :refer [->mw ->content-type url-encode charset]]
+            [kvlt.platform.util :refer [encode-json]]))
 
 (defn ^:no-doc query-string+encoding [params encoding]
   (str/join
@@ -57,6 +58,9 @@
 
 (defmethod coerce-form-params :application/edn [{:keys [form-params]}]
   (pr-str form-params))
+
+(defmethod coerce-form-params :application/json [{:keys [form-params]}]
+  (encode-json form-params))
 
 (defmw form
   "Given a request having a `:form-params` map and a method of `POST`,
