@@ -53,7 +53,7 @@
       (when close?
         (p/close! read-ch)))))
 
-(defn- pprint-str [x]
+(defn pprint-str [x]
   (str/trimr (with-out-str (pprint/pprint x))))
 
 (defn doc-examples! [vvar examples]

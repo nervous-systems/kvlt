@@ -1,5 +1,6 @@
 (ns ^:no-doc kvlt.middleware.util
   (:require [kvlt.platform.util :as platform.util]
+            [promesa.monad]
             [clojure.string :as str]
             [cats.core :as m]
             [taoensso.timbre :as log]

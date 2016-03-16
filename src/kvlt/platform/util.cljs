@@ -14,4 +14,4 @@
   (walk/keywordize-keys (js->clj (.parse js/JSON s))))
 
 (defn encode-json [x]
-  (.serialize js/JSON (clj->js x)))
+  (.stringify js/JSON (clj->js x)))

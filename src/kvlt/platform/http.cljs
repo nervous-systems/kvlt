@@ -1,5 +1,6 @@
 (ns ^:no-doc kvlt.platform.http
   (:require [cljs.core.async :as async]
+            [taoensso.timbre :as log]
             [clojure.string :as str]
             [kvlt.util :as util]
             [promesa.core :as p])
@@ -78,10 +79,12 @@
          :body       (.getResponse resp)
          :headers    (headers->map (.getAllResponseHeaders resp))
          :error-code (code->error (.getLastErrorCode resp))
-         :error-text (.getLastError resp)}]
-    (-> m
-        (cond-> (= status 0) tidy-http-error)
-        (vary-meta assoc :kvlt/request req))))
+         :error-text (.getLastError resp)}
+        m (-> m
+              (cond-> (= status 0) tidy-http-error)
+              (vary-meta assoc :kvlt/request req))]
+    (log/debug "Received response\n" (util/pprint-str resp))
+    m))
 
 (defn filter-headers [m]
   (into {}
@@ -94,6 +97,7 @@
         method  (name (or request-method :get))
         headers (clj->js (filter-headers headers))
         xhr     (req->xhr req)]
+    (log/debug "Issuing request\n" (util/pprint-str req))
     (p/promise
      (fn [resolve reject]
        (.listen xhr EventType.COMPLETE

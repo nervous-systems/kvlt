@@ -1,4 +1,4 @@
-(defproject io.nervous/kvlt "0.1.0-SNAPSHOT"
+(defproject io.nervous/kvlt "0.1.1-SNAPSHOT"
   :url "https://github.com/nervous-systems/kvlt"
   :description "Multi-target Clojure/script HTTP client"
   :license {:name "Unlicense" :url "http://unlicense.org/UNLICENSE"}
@@ -14,7 +14,8 @@
                  [org.clojure/clojurescript  "1.7.170"]
                  [org.clojure/core.async     "0.2.374"]
 
-                 [funcool/promesa     "0.6.0"]
+                 [funcool/promesa     "0.8.1"]
+                 [funcool/cats        "1.2.1"]
                  [aleph               "0.4.1-beta5"]
                  [com.taoensso/timbre "4.1.4"]
                  [commons-codec/commons-codec "1.9"]]
