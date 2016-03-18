@@ -25,6 +25,12 @@
   (let [encoding (charset content-type)]
     (query-string+encoding params encoding)))
 
+(defmw short-query
+  "Rename request's `:query` key to `:query-params`"
+  ^{:has :query :removing :query}
+  (fn [{:keys [query] :as m}]
+    (assoc m :query-params query)))
+
 (defmw query
   "Given a request having a `:query-params` map, append to the URL's
   query (`:query-string`) its URL-encoded string representation. "
@@ -61,6 +67,12 @@
 
 (defmethod coerce-form-params :application/json [{:keys [form-params]}]
   (encode-json form-params))
+
+(defmw short-form
+  "Rename request's `:form` key to `:form-params`"
+  ^{:has :form :removing :form}
+  (fn [{:keys [form] :as m}]
+    (assoc m :form-params form)))
 
 (defmw form
   "Given a request having a `:form-params` map and a method of `POST`,

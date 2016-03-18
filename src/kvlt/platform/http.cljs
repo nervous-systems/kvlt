@@ -83,7 +83,7 @@
         m (-> m
               (cond-> (= status 0) tidy-http-error)
               (vary-meta assoc :kvlt/request req))]
-    (log/debug "Received response\n" (util/pprint-str resp))
+    (log/debug "Received response\n" (util/pprint-str m))
     m))
 
 (defn filter-headers [m]
