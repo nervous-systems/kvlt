@@ -9,18 +9,14 @@
 
 ;; On Node, adjust goog.net.XmlHttp to use a factory which will
 ;; instantiate the object provided by the "xmlhttprequest" NPM package
-(when (= *target* "nodejs")
-  (let [XmlHttpRequest (js/require "xhr2")]
-
+(when-not (exists? js/XMLHttpRequest)
+  (let [xhr (js/require "xhr2")]
     (defn NodeXhrFactory []
       (this-as this (.call XmlHttpFactory this)))
 
     (goog/inherits NodeXhrFactory XmlHttpFactory)
 
-    (set!
-     (.. NodeXhrFactory -prototype -createInstance)
-     #(XmlHttpRequest.))
-
+    (set! (.. NodeXhrFactory -prototype -createInstance) #(xhr.))
     (set!
      (.. NodeXhrFactory -prototype -internalGetOptions)
      (constantly #js {}))

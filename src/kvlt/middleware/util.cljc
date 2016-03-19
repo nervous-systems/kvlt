@@ -37,7 +37,8 @@
   (let [{:keys [has removing]} (meta f)
         f (if has
             (fn [{v has :as req}]
-              (cond-> req v f))
+              (cond-> req
+                v f))
             f)]
     (if removing
       (fn [req]

@@ -8,7 +8,7 @@
 (defn inflate [s] s)
 
 (defn byte-array? [x]
-  (and js/ArrayBuffer (= (type x) js/ArrayBuffer)))
+  (and (exists? js/ArrayBuffer) (= (type x) js/ArrayBuffer)))
 
 (defn parse-json [s]
   (walk/keywordize-keys (js->clj (.parse js/JSON s))))

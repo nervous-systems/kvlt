@@ -5,9 +5,9 @@
             [kvlt.util :as util]))
 
 (def EventSource
-  (if (= *target* "nodejs")
-    (js/require "eventsource")
-    js/EventSource))
+  (if (exists? js/EventSource)
+    js/EventSource
+    (js/require "eventsource")))
 
 (defn event->map [e format]
   (format-event

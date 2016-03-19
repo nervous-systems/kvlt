@@ -10,11 +10,11 @@
    {:transforms
     ~(read-string (slurp "codox-transforms.edn"))}}
   :source-paths ["src"]
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript  "1.7.170"]
+  :dependencies [[org.clojure/clojure        "1.8.0"]
+                 [org.clojure/clojurescript  "1.8.34"]
                  [org.clojure/core.async     "0.2.374"]
 
-                 [funcool/promesa     "0.8.1"]
+                 [funcool/promesa     "1.1.1"]
                  [funcool/cats        "1.2.1"]
                  [aleph               "0.4.1-beta5"]
                  [com.taoensso/timbre "4.1.4"]

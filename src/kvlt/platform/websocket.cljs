@@ -7,10 +7,9 @@
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def WebSocket
-  (if (= *target* "nodejs")
-    ;; Dot-hyphen kills me
-    (.. (js/require "websocket") -w3cwebsocket)
-    js/WebSocket))
+  (if (exists? js/WebSocket)
+    js/WebSocket
+    (.. (js/require "websocket") -w3cwebsocket)))
 
 (defn- ws->chan! [ws chan format]
   (set! (.. ws -onmessage) #(async/put! chan (format-incoming format (.. % -data)))))
