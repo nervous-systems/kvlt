@@ -16,7 +16,7 @@
  [:div.primary]
  [:prepend
   [:a {:href "index.html"}
-   [:img.logo {:src "kvlt.png"}]]]
+   [:img.logo {:src "kvlt.png" :height "99"}]]]
 
  [:div.primary]
  [:append [:a.attribution

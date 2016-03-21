@@ -8,7 +8,8 @@
    :metadata {:doc/format :markdown}
    :html
    {:transforms
-    ~(read-string (slurp "codox-transforms.edn"))}}
+    ~(read-string (slurp "codox-transforms.edn"))}
+   :source-uri "https://github.com/nervous-systems/kvlt/blob/master/{filepath}#L{line}"}
   :source-paths ["src"]
   :dependencies [[org.clojure/clojure        "1.8.0"]
                  [org.clojure/clojurescript  "1.8.34"]
