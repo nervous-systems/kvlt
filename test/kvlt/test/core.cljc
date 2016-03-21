@@ -33,7 +33,7 @@
        :method :post
        :accept-encoding "gzip"
        :content-type :edn
-       :form-params {:hello 'world}}
+       :form {:hello 'world}}
       m))
     (fn [{:keys [status reason headers body] :as resp}]
       (is= 200 status)
@@ -57,9 +57,7 @@
   #? (:clj  (byte-array hexagram-bytes)
       :cljs (js/Int8Array. (clj->js hexagram-bytes))))
 (def byte-req
-  {:url (str "http://localhost:"
-             util/local-port
-             "/echo/body?encoding=UTF-16")
+  {:url (str "http://localhost:" util/local-port "/echo/body?encoding=UTF-16")
    :method :post
    :content-type "text/plain"
    :character-encoding "UTF-16"
@@ -74,12 +72,12 @@
 (deftest jumbled-middleware
   (util/with-result
     (kvlt/request!
-     {:headers {"X-HI" "OK" :x-garbage "text/"}
-      :url (str "http://localhost:" util/local-port "/echo")
-      :accept :text/plain
+     {:headers    {"X-HI" "OK" :x-garbage "text/"}
+      :url        (str "http://localhost:" util/local-port "/echo")
+      :accept     :text/plain
       :basic-auth ["moe@nervous.io" "TOP_SECRET"]
-      :query-params {:Q :two}
-      :as :auto})
+      :query      {:Q :two}
+      :as         :auto})
     (fn [{:keys [body] :as resp}]
       (let [{:keys [headers] :as req} (keywordize-keys body)]
         (is (headers :authorization))

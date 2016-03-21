@@ -1,4 +1,4 @@
-(defproject io.nervous/kvlt "0.1.0"
+(defproject io.nervous/kvlt "0.1.1-SNAPSHOT"
   :url "https://github.com/nervous-systems/kvlt"
   :description "Multi-target Clojure/script HTTP client"
   :license {:name "Unlicense" :url "http://unlicense.org/UNLICENSE"}
@@ -8,13 +8,15 @@
    :metadata {:doc/format :markdown}
    :html
    {:transforms
-    ~(read-string (slurp "codox-transforms.edn"))}}
+    ~(read-string (slurp "codox-transforms.edn"))}
+   :source-uri "https://github.com/nervous-systems/kvlt/blob/master/{filepath}#L{line}"}
   :source-paths ["src"]
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript  "1.7.170"]
+  :dependencies [[org.clojure/clojure        "1.8.0"]
+                 [org.clojure/clojurescript  "1.8.34"]
                  [org.clojure/core.async     "0.2.374"]
 
-                 [funcool/promesa     "0.6.0"]
+                 [funcool/promesa     "1.1.1"]
+                 [funcool/cats        "1.2.1"]
                  [aleph               "0.4.1-beta5"]
                  [com.taoensso/timbre "4.1.4"]
                  [commons-codec/commons-codec "1.9"]]
