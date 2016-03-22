@@ -33,22 +33,21 @@ something like:
 
 ```clojure
 (ns kvlt.examples
-  (:require [cats.core :as m]
-            [kvlt.core :as kvlt]
-            [promesa.core :as promesa]))
+  (:require [kvlt.core :as kvlt]
+            [promesa.core :as p]))
 ```
 
 The default `:method` is `:get`:
 
 ```clojure
-(m/mlet [{:keys [status]} (kvlt/request! {:url url})]
+(p/alet [{:keys [status]} (p/await (kvlt/request! {:url url}))]
   (is (= status 200)))
 ```
 
 ## Explicit Callback
 
 ```clojure
-(promesa/then
+(p/then
  (kvlt/request! {:url url})
  (fn [{:keys [status]}]
    (is (= status 200))))
@@ -73,12 +72,13 @@ applied to `:body`, indicating the desired content-type and body
 serialization:
 
 ```clojure
-(m/mlet [{:keys [body]}
-         (kvlt/request!
-          {:url    url
-           :method :post
-           :body   ^:kvlt.body/edn {:hello "world"}
-           :as     :auto})]
+(p/alet [{:keys [body]}
+         (p/await
+          (kvlt/request!
+           {:url    url
+            :method :post
+            :body   ^:kvlt.body/edn {:hello "world"}
+            :as     :auto}))]
   (is (= (body :hello) "world")))
 ```
 
@@ -89,7 +89,7 @@ would have the same effect.
 ## Errors
 
 ```clojure
-(promesa/catch
+(p/catch
  (kvlt/request! {:url (str url "/404")})
  (fn [e]
    (is (= :not-found ((ex-data e) :type)))))
@@ -141,8 +141,7 @@ takes a URL, and returns a promise which'll resolve to a `core.async`
 channel:
 
 ``` clojure
-(m/mlet [ws (kvlt/websocket!
-              "http://localhost:5000/ws" {:format :edn})]
+(p/alet [ws (p/await (kvlt/websocket! "http://localhost:5000/ws" {:format :edn}))]
   (go
     (>! ws {:climate :good, :bribery :tolerated})
     (let [instructions (<! ws)]
