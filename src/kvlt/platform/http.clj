@@ -1,6 +1,7 @@
 (ns ^:no-doc kvlt.platform.http
   (:require
    [kvlt.middleware :as mw]
+   [kvlt.util :refer [pprint-str]]
    [clojure.string :as str]
    [aleph.http :as http]
    [aleph.http.client-middleware]
@@ -11,10 +12,13 @@
    [taoensso.timbre :as log]))
 
 (defn- handle-response [m req]
-  (-> m
-      (update :body byte-streams/to-byte-array)
-      (update :headers (partial into {}))
-      (vary-meta assoc :kvlt/request req)))
+  (let [m (-> m
+              (update :body byte-streams/to-byte-array)
+              (update :headers (partial into {}))
+              (vary-meta assoc :kvlt/request req))]
+    (log/debug "Received response\n"
+               (pprint-str (assoc m :body "(byte array omitted)")))
+    m))
 
 (defn exception->keyword [^Class class]
   (-> class .getSimpleName (str/replace #"Exception$" "")
@@ -46,13 +50,14 @@
           :port server-port} req))
 
 (defn request! [req]
+  (log/debug "Issuing request\n" (pprint-str req))
   (let [req (default-request req)]
     (p/promise
      (fn [resolve reject]
        (try
          (deferred/on-realized
-          (http/request req)
-          #(resolve (handle-response % req))
+           (http/request req)
+           #(resolve (handle-response % req))
            (comp resolve exception->map))
          (catch Exception e
            (resolve (exception->map e))))))))

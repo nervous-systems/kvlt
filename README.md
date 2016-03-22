@@ -1,4 +1,4 @@
-![Hail](https://raw.githubusercontent.com/nervous-systems/kvlt/master/doc/assets/kvlt.png) [![Build Status](https://travis-ci.org/nervous-systems/kvlt.svg?branch=master)](https://travis-ci.org/nervous-systems/kvlt)
+![Hail Satan](https://raw.githubusercontent.com/nervous-systems/kvlt/master/doc/assets/kvlt.png) [![Build Status](https://travis-ci.org/nervous-systems/kvlt.svg?branch=master)](https://travis-ci.org/nervous-systems/kvlt)
 
 Attempts to present a uniform, asychronous client interface for HTTP across JVM / Node / browsers.
 

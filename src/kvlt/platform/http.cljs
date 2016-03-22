@@ -1,5 +1,6 @@
 (ns ^:no-doc kvlt.platform.http
   (:require [cljs.core.async :as async]
+            [taoensso.timbre :as log]
             [clojure.string :as str]
             [kvlt.util :as util]
             [promesa.core :as p])
@@ -8,18 +9,14 @@
 
 ;; On Node, adjust goog.net.XmlHttp to use a factory which will
 ;; instantiate the object provided by the "xmlhttprequest" NPM package
-(when (= *target* "nodejs")
-  (let [XmlHttpRequest (js/require "xhr2")]
-
+(when-not (exists? js/XMLHttpRequest)
+  (let [xhr (js/require "xhr2")]
     (defn NodeXhrFactory []
       (this-as this (.call XmlHttpFactory this)))
 
     (goog/inherits NodeXhrFactory XmlHttpFactory)
 
-    (set!
-     (.. NodeXhrFactory -prototype -createInstance)
-     #(XmlHttpRequest.))
-
+    (set! (.. NodeXhrFactory -prototype -createInstance) #(xhr.))
     (set!
      (.. NodeXhrFactory -prototype -internalGetOptions)
      (constantly #js {}))
@@ -78,10 +75,12 @@
          :body       (.getResponse resp)
          :headers    (headers->map (.getAllResponseHeaders resp))
          :error-code (code->error (.getLastErrorCode resp))
-         :error-text (.getLastError resp)}]
-    (-> m
-        (cond-> (= status 0) tidy-http-error)
-        (vary-meta assoc :kvlt/request req))))
+         :error-text (.getLastError resp)}
+        m (-> m
+              (cond-> (= status 0) tidy-http-error)
+              (vary-meta assoc :kvlt/request req))]
+    (log/debug "Received response\n" (util/pprint-str m))
+    m))
 
 (defn filter-headers [m]
   (into {}
@@ -94,6 +93,7 @@
         method  (name (or request-method :get))
         headers (clj->js (filter-headers headers))
         xhr     (req->xhr req)]
+    (log/debug "Issuing request\n" (util/pprint-str req))
     (p/promise
      (fn [resolve reject]
        (.listen xhr EventType.COMPLETE

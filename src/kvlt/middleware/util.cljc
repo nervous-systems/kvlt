@@ -1,5 +1,6 @@
 (ns ^:no-doc kvlt.middleware.util
   (:require [kvlt.platform.util :as platform.util]
+            [promesa.monad]
             [clojure.string :as str]
             [cats.core :as m]
             [taoensso.timbre :as log]
@@ -36,7 +37,8 @@
   (let [{:keys [has removing]} (meta f)
         f (if has
             (fn [{v has :as req}]
-              (cond-> req v f))
+              (cond-> req
+                v f))
             f)]
     (if removing
       (fn [req]

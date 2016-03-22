@@ -9,9 +9,8 @@ something like:
 
 ```clojure
 (ns kvlt.examples
-  (:require [cats.core :as m]
-            [kvlt.core :as kvlt]
-            [promesa.core :as promesa]))
+  (:require [kvlt.core :as kvlt]
+            [promesa.core :as p]))
 ```
 
 And assuming a resource at `url` which'll return a response with
@@ -22,14 +21,14 @@ identical headers & body to its request.
 The default `:method` is `:get`:
 
 ```clojure
-(m/mlet [{:keys [status]} (kvlt/request! {:url url})]
+(p/alet [{:keys [status]} (p/await (kvlt/request! {:url url}))]
   (is (= status 200)))
 ```
 
 ## Explicit Callback
 
 ```clojure
-(promesa/then
+(p/then
  (kvlt/request! {:url url})
  (fn [{:keys [status]}]
    (is (= status 200))))
@@ -85,8 +84,8 @@ retrievable via `ex-data`.
 The default body content type is `text/plain`:
 
 ```clojure
-(m/mlet [{:keys [body headers]}
-         (kvlt/request! {:url url :method :post :body "Hi")]
+(p/alet [{:keys [body headers]}
+         (p/await (kvlt/request! {:url url :method :post :body "Hi"}))]
   (is (= body "Hi"))
   (is (= (headers :content-type) "text/plain")))
 ```
@@ -98,12 +97,13 @@ applied to `:body`, indicating the desired content-type and body
 serialization:
 
 ```clojure
-(m/mlet [{:keys [body]}
-         (kvlt/request!
-          {:url    url
-           :method :post
-           :body   ^:kvlt.body/edn {:hello "world"}
-           :as     :auto})]
+(p/alet [{:keys [body]}
+         (p/await
+          (kvlt/request!
+           {:url    url
+            :method :post
+            :body   ^:kvlt.body/edn {:hello "world"}
+            :as     :auto}))]
   (is (= (body :hello) "world")))
 ```
 
@@ -125,11 +125,12 @@ Clojurescript).
 (let [input #? (:clj  (.getBytes "hello!" "UTF-8")
                 :cljs (js/Int8Array.
                        (goog.crypt.stringToUtf8ByteArray "hello!")))]
-  (m/mlet [{output :body}
-           (kvlt/request! {:url    url
-                           :method :post
-                           :body   input
-                           :as     :byte-array})]
+  (p/alet [{output :body}
+           (p/await
+            (kvlt/request! {:url    url
+                            :method :post
+                            :body   input
+                            :as     :byte-array}))]
     ;; Some code to compare these guys in a cross-platform way
     ))
 ```

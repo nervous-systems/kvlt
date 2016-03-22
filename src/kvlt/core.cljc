@@ -10,7 +10,9 @@
    mw/as
 
    mw.params/form
+   mw.params/short-form
    mw.params/query
+   mw.params/short-query
 
    mw/method
    mw/default-method

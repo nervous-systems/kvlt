@@ -17,7 +17,7 @@
 ;; This is to hack around a combination of issues in Doo and xhr2
 (set! (.. js/console -warn)  (.. js/console -log))
 (set! (.. js/console -error) (.. js/console -log))
-g
+
 (doo-tests
  'kvlt.test.core
  'kvlt.test.middleware

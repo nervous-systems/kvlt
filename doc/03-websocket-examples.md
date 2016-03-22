@@ -5,11 +5,11 @@ resolve to a `core.async` channel:
 
 ``` clojure
 (ns kvlt.examples
-  (:require [cats.core :as m]
+  (:require [promesa.core :as p]
             [kvlt.core :as kvlt]
             ...))
 
-(m/mlet [ws (kvlt/websocket! "http://localhost:5000/ws")]
+(p/alet [ws (p/await (kvlt/websocket! "http://localhost:5000/ws"))]
   (go
     (>! ws "Behind_the_Wall_of_Sleep.wma")
     (is (= "OK" (<! ws)))))
@@ -23,8 +23,9 @@ Once you've exhausted the possibilities of plain text, feel free to
 stretch your legs:
 
 ```
-(m/mlet [ws (kvlt/websocket!
-              "http://localhost:5000/ws" {:format :edn})]
+(p/alet [ws (p/await (kvlt/websocket!
+                      "http://localhost:5000/ws"
+                      {:format :edn}))]
   (go
     (>! ws {:climate :good, :bribery :tolerated})
     (let [instructions (<! ws)]
