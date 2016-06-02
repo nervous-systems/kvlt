@@ -1,4 +1,4 @@
-(defproject io.nervous/kvlt "0.1.1"
+(defproject io.nervous/kvlt "0.1.2-SNAPSHOT"
   :url "https://github.com/nervous-systems/kvlt"
   :description "Multi-target Clojure/script HTTP client"
   :license {:name "Unlicense" :url "http://unlicense.org/UNLICENSE"}

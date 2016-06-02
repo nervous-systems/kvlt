@@ -113,11 +113,23 @@
     (from-content-type
      (header resp k (util/->content-type (as-key resp))))))
 
+(defn- parsing-error [resp e]
+  (let [error (platform.util/exception->map
+               e {:error :middleware-error
+                  :type  :middleware-error})]
+    (cond-> resp
+      (not (resp :error)) (merge error))))
+
 (defmw as
   "Response body type conversion --- `:string` `:byte-array` `:auto` `:json` `:edn` etc..
 
   See [[from-content-type]] for custom conversions."
-  #(merge {:as :string} %) as-type)
+  #(merge {:as :string} %)
+  (fn [resp]
+    (try
+      (as-type resp)
+      (catch #? (:clj Exception :cljs :default) e
+        (parsing-error resp e)))))
 
 (defmw accept-encoding
   "Convert the `:accept-encoding` option (keyword/str, or collection
@@ -308,9 +320,14 @@ response's `:headers` values to keywords. "
   nil
   (fn [{:keys [message status cause error] :as resp}]
     (let [reason (status->reason status error)]
-      (if (unexceptional-status? status)
+      (if (and (not error) (unexceptional-status? status))
         (assoc resp :reason reason)
-        (ex-info message (assoc resp :type reason :reason reason) cause)))))
+        (ex-info message
+                 (assoc resp
+                   :error  (or error reason)
+                   :type   reason
+                   :reason reason)
+                 cause)))))
 
 (with-doc-examples! error
   [{:status  500

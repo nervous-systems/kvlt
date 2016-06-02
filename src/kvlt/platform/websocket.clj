@@ -1,7 +1,7 @@
 (ns ^:no-doc kvlt.platform.websocket
   (:require [aleph.http :as http]
             [clojure.core.async :as async]
-            [kvlt.platform.http :refer [exception->map]]
+            [kvlt.platform.util :refer [exception->map]]
             [kvlt.util :as util]
             [kvlt.websocket :refer [format-incoming format-outgoing]]
             [manifold.deferred :as deferred]

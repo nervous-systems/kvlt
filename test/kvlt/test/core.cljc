@@ -124,3 +124,36 @@
       (util/with-result (json-req)
         (fn [{:keys [body]}]
           (is= {:x 1} body)))))
+
+(defn responder [resp]
+  (reduce
+   #(%2 %1)
+   (fn [req]
+     (p/resolved
+      (with-meta resp {:kvlt/request req})))
+   kvlt/default-middleware))
+
+(defmethod kvlt.middleware/as-type :xxx [_]
+  (throw #? (:clj (Exception. "LOL JVM") :cljs (js/Error. "OK JS"))))
+
+(deftest parse-error-preserves-existing
+  (let [request! (responder {:status 400 :body "..." :error :http-error})]
+    (util/with-result
+      (p/branch
+        (request! {:url "http://localhost"
+                   :as  :xxx})
+        (constantly nil)
+        ex-data)
+      (fn [{e :error}]
+        (is (= e :http-error))))))
+
+(deftest parse-error
+  (let [request! (responder {:status 200 :body "..."})]
+    (util/with-result
+      (p/branch
+        (request! {:url "http://localhost"
+                   :as  :xxx})
+        (constantly nil)
+        ex-data)
+      (fn [{e :error}]
+        (is (= e :middleware-error))))))
