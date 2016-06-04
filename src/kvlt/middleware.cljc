@@ -62,8 +62,8 @@
 
 (defmw content-type
   "Turn request's `:content-type` (or `:type`), if any, and
-   `:character-encoding`, if any, into a \"content-type\" header &
-   leave top-level `:content-type` key in place. "
+   `:character-encoding`, if any, into a \"content-type\" header & leave
+   top-level `:content-type` key in place. "
   (fn [{:keys [type body character-encoding] :as req}]
     (let [{:keys [content-type] :as req}
           (cond-> req type (assoc :content-type type))]
@@ -158,6 +158,12 @@
   (fn [{m :method :as req}]
     (assoc req :request-method m)))
 
+(defmw port
+  "Rename request's `:port` key to `:server-port`"
+  ^{:has :port :removing :port}
+  (fn [{port :port :as req}]
+    (assoc req :server-port port)))
+
 (with-doc-examples! method
   [{:method :get} {:request-method :get}])
 
@@ -182,7 +188,10 @@
   "Add `:content-type` key having value `:text/plain`, if no `:content-type` present.
 
   Assumes placement before [[content-type]]."
-  #(merge {:content-type :text/plain} %))
+  (fn [req]
+    (if-not (or (req :content-type) (header req :content-type))
+      (assoc req :content-type :text/plain)
+      req)))
 
 (defmw keyword-headers
   "Convert keys within request's `:headers` value to strings, and
