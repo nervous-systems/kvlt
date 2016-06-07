@@ -1,8 +1,32 @@
 (ns ^:no-doc kvlt.platform.util
   (:require [byte-streams]
+            [clojure.string :as str]
             [clojure.java.io :as io])
   (:import [java.io ByteArrayInputStream BufferedInputStream]
            [java.util.zip DeflaterInputStream GZIPInputStream InflaterInputStream]))
+
+(defn- exception->keyword [^Class class]
+  (let [t (-> class .getSimpleName (str/replace #"Exception$" "")
+              (->> (re-seq #"[A-Z]+[^A-Z]*")
+                   (map str/lower-case)
+                   (str/join "-")))]
+    (or (not-empty t) :generic)))
+
+(defn- unwrap-exception [e]
+  (if-let [{:keys [status] :as data} (ex-data e)]
+    {:type   status
+     :error  status
+     :status status
+     :kvlt.platform/error e}
+    (let [{:keys [class message]} (bean e)
+          type (exception->keyword class)]
+      {:status 0
+       :type   :http-error
+       :error  :http-error
+       :kvlt.platform/error type})))
+
+(defn exception->map [e & [hints]]
+  (merge (unwrap-exception e) hints))
 
 (def json-enabled?
   (try

@@ -2,13 +2,13 @@
   (:require
    [kvlt.middleware :as mw]
    [kvlt.util :refer [pprint-str]]
+   [kvlt.platform.util :refer [exception->map]]
    [clojure.string :as str]
    [aleph.http :as http]
    [aleph.http.client-middleware]
    [manifold.deferred :as deferred]
    [byte-streams]
    [promesa.core :as p]
-   [clojure.core.async :as async]
    [taoensso.timbre :as log]))
 
 (defn- handle-response [m req]
@@ -19,24 +19,6 @@
     (log/debug "Received response\n"
                (pprint-str (assoc m :body "(byte array omitted)")))
     m))
-
-(defn exception->keyword [^Class class]
-  (-> class .getSimpleName (str/replace #"Exception$" "")
-      (->> (re-seq #"[A-Z]+[^A-Z]*")
-           (map str/lower-case)
-           (str/join "-")
-           keyword)))
-
-(defn exception->map [e]
-  (if-let [{:keys [status] :as data} (ex-data e)]
-    (assoc data :type status :error status)
-    (let [{:keys [class message] :as data} (bean e)
-          type (exception->keyword class)]
-      (assoc data
-        :status 0
-        :type   :http-error
-        :error  :http-error
-        :kvlt.platform/error type))))
 
 (defn required-middleware [client]
   #(client (aleph.http.client-middleware/decorate-url %)))

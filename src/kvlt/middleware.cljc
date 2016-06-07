@@ -62,8 +62,8 @@
 
 (defmw content-type
   "Turn request's `:content-type` (or `:type`), if any, and
-   `:character-encoding`, if any, into a \"content-type\" header &
-   leave top-level `:content-type` key in place. "
+   `:character-encoding`, if any, into a \"content-type\" header & leave
+   top-level `:content-type` key in place. "
   (fn [{:keys [type body character-encoding] :as req}]
     (let [{:keys [content-type] :as req}
           (cond-> req type (assoc :content-type type))]
@@ -113,11 +113,23 @@
     (from-content-type
      (header resp k (util/->content-type (as-key resp))))))
 
+(defn- parsing-error [resp e]
+  (let [error (platform.util/exception->map
+               e {:error :middleware-error
+                  :type  :middleware-error})]
+    (cond-> resp
+      (not (resp :error)) (merge error))))
+
 (defmw as
   "Response body type conversion --- `:string` `:byte-array` `:auto` `:json` `:edn` etc..
 
   See [[from-content-type]] for custom conversions."
-  #(merge {:as :string} %) as-type)
+  #(merge {:as :string} %)
+  (fn [resp]
+    (try
+      (as-type resp)
+      (catch #? (:clj Exception :cljs :default) e
+        (parsing-error resp e)))))
 
 (defmw accept-encoding
   "Convert the `:accept-encoding` option (keyword/str, or collection
@@ -146,6 +158,12 @@
   (fn [{m :method :as req}]
     (assoc req :request-method m)))
 
+(defmw port
+  "Rename request's `:port` key to `:server-port`"
+  ^{:has :port :removing :port}
+  (fn [{port :port :as req}]
+    (assoc req :server-port port)))
+
 (with-doc-examples! method
   [{:method :get} {:request-method :get}])
 
@@ -170,7 +188,10 @@
   "Add `:content-type` key having value `:text/plain`, if no `:content-type` present.
 
   Assumes placement before [[content-type]]."
-  #(merge {:content-type :text/plain} %))
+  (fn [req]
+    (if-not (or (req :content-type) (header req :content-type))
+      (assoc req :content-type :text/plain)
+      req)))
 
 (defmw keyword-headers
   "Convert keys within request's `:headers` value to strings, and
@@ -308,9 +329,14 @@ response's `:headers` values to keywords. "
   nil
   (fn [{:keys [message status cause error] :as resp}]
     (let [reason (status->reason status error)]
-      (if (unexceptional-status? status)
+      (if (and (not error) (unexceptional-status? status))
         (assoc resp :reason reason)
-        (ex-info message (assoc resp :type reason :reason reason) cause)))))
+        (ex-info message
+                 (assoc resp
+                   :error  (or error reason)
+                   :type   reason
+                   :reason reason)
+                 cause)))))
 
 (with-doc-examples! error
   [{:status  500

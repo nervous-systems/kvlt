@@ -1,6 +1,11 @@
 (ns ^:no-doc kvlt.platform.util
   (:require [clojure.walk :as walk]))
 
+(defn exception->map [e & [hints]]
+  (merge {:message (.. e -message)
+          :type    :http-error
+          :error   :http-error} hints))
+
 ;; These functions oughtn't be invoked currently - accept-encoding
 ;; isn't ever set on Node, and in the browser, the response will be
 ;; silently decompressed.

@@ -3,7 +3,8 @@
             [kvlt.platform.websocket :as platform.websocket]
             [kvlt.platform.event-source :as platform.event-source]
             [kvlt.middleware :as mw]
-            [kvlt.middleware.params :as mw.params]))
+            [kvlt.middleware.params :as mw.params]
+            [taoensso.timbre :as log]))
 
 (def ^:no-doc default-middleware
   [mw/decompress
@@ -14,6 +15,7 @@
    mw.params/query
    mw.params/short-query
 
+   mw/port
    mw/method
    mw/default-method
    mw/accept
@@ -30,6 +32,9 @@
    mw/error])
 
 (def ^:private request* (reduce #(%2 %1) platform.http/request! default-middleware))
+
+(defn quiet! "Disable request/response logging" []
+  (log/merge-config! {:ns-blacklist ["kvlt.*"]}))
 
 (defn request!
   "Issues the HTTP request described by the given map, returning a

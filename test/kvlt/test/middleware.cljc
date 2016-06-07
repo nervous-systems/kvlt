@@ -7,12 +7,7 @@
    [kvlt.middleware :as mw :refer [header]]
    [kvlt.test.util :as util #?(:clj :refer :cljs :refer-macros) [is=]]
    [promesa.core :as p]
-   #? (:clj [kvlt.test.server]))
-  #? (:clj (:import [org.apache.commons.codec.binary Base64])))
-
-(defn base64-decode [x]
-  #? (:clj
-      (String. (Base64/decodeBase64 x))))
+   #? (:clj [kvlt.test.server])))
 
 (def url->parsed
   {(str "http://www.amazon.com/Songs-Dreamer-Grimscribe-Thomas-Ligotti/"
