@@ -27,7 +27,7 @@
   (http/connection-pool {:middleware required-middleware}))
 
 (defn default-request [{:keys [server-name server-port] :as req} & [pool]]
-  (merge {:pool (or pool boring-connection-pool)
+  (merge {:pool (or pool (req :kvlt.platform/pool) boring-connection-pool)
           :host server-name
           :port server-port} req))
 
