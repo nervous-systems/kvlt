@@ -82,7 +82,6 @@
       (let [{:keys [headers] :as req} (keywordize-keys body)]
         (is (headers :authorization))
         (is= "OK" (headers :x-hi))
-        (is= "text/plain" (headers :content-type))
         (is= "text/plain" (headers :accept))
         (is= {:Q ":two"}  (req :query-params))))))
 
