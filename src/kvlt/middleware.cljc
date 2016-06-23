@@ -13,11 +13,15 @@
   ([{hs :headers :as resp} k]
    (and hs (some hs [k (name k)])))
   ([m k v]
-   (assoc-in m [:headers (name k)] v)))
+   (update m :headers
+           (fn [h]
+             (-> h
+                 (dissoc k (name k))
+                 (assoc (name k) v))))))
 
 (defn- body->string [{:keys [body] :as resp}]
-  #? (:clj  (String. body (util/charset (header resp :content-type)))
-      :cljs body))
+  (platform.util/byte-array->str
+   body (util/charset (header resp :content-type))))
 
 (defmulti from-content-type
   "Used by [[as]] to transform an incoming response.  Dispatches on
@@ -108,10 +112,9 @@
 (defmethod as-type :auto [resp] (from-content-type resp))
 (defmethod as-type :default [{:keys [headers] :as resp}]
   (let [t    (header resp :content-type)
-        resp (assoc resp :orig-content-type t)
-        k    (cond-> :content-type (string? t) name)]
+        resp (assoc resp :orig-content-type t)]
     (from-content-type
-     (header resp k (util/->content-type (as-key resp))))))
+     (header resp :content-type (util/->content-type (as-key resp))))))
 
 (defn- parsing-error [resp e]
   (let [error (platform.util/exception->map
@@ -128,12 +131,12 @@
   (fn [resp]
     (try
       (as-type resp)
-      (catch #? (:clj Exception :cljs :default) e
+      (catch #? (:clj Exception :cljs js/Error) e
         (parsing-error resp e)))))
 
 (defmw accept-encoding
-  "Convert the `:accept-encoding` option (keyword/str, or collection
-  of) to an acceptable `Accept-Encoding` header.
+  "Convert the `:accept-encoding` option (keyword/str, or collection of) to an
+  acceptable `Accept-Encoding` header.
 
   This middleware is not likely to have any effect in a browser
   environment."

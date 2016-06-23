@@ -23,11 +23,19 @@
 (defn required-middleware [client]
   #(client (aleph.http.client-middleware/decorate-url %)))
 
+(def ^:private insecure-connection-pool
+  (http/connection-pool {:connection-options {:insecure? true}
+                         :middleware         required-middleware}))
+
 (def ^:private boring-connection-pool
   (http/connection-pool {:middleware required-middleware}))
 
 (defn default-request [{:keys [server-name server-port] :as req} & [pool]]
-  (merge {:pool (or pool (req :kvlt.platform/pool) boring-connection-pool)
+  (merge {:pool (or pool
+                    (req :kvlt.platform/pool)
+                    (when (req :kvlt.platform/insecure?)
+                      insecure-connection-pool)
+                    boring-connection-pool)
           :host server-name
           :port server-port} req))
 

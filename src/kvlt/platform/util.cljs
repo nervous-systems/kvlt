@@ -13,7 +13,13 @@
 (defn inflate [s] s)
 
 (defn byte-array? [x]
-  (and (exists? js/ArrayBuffer) (= (type x) js/ArrayBuffer)))
+  (or (and (exists? js/ArrayBuffer) (= (type x) js/ArrayBuffer))
+      (and (exists? js/Buffer) (= (type x) js/Buffer))))
+
+(defn byte-array->str [ba encoding]
+  (if (and (exists? js/Buffer) (= (type ba) js/Buffer))
+    (.toString ba encoding)
+    ba))
 
 (defn parse-json [s]
   (walk/keywordize-keys (js->clj (.parse js/JSON s))))

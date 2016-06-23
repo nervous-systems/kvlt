@@ -4,6 +4,7 @@
                 :cljs [cljs.test :refer-macros [is]])
             [clojure.string :as str]
             [kvlt.platform.http :as http]
+            [kvlt.platform.util :as platform.util]
             [kvlt.test.util :as util #?(:clj :refer :cljs :refer-macros) [deftest after-> is=]]
             [cats.core :as m]
             [#? (:clj
@@ -19,7 +20,7 @@
           :server-port util/local-port} m))
 
 (defn body [m]
-  (-> m :body #? (:clj (String. "UTF-8"))))
+  (-> m :body (platform.util/byte-array->str "UTF-8")))
 
 (defn throw-error [{:keys [error message] :as m}]
   (when error
@@ -76,4 +77,6 @@
 (deftest http-error
   (util/is-http-error
    (http/request!
-    (assoc (url {:server-name "rofl"}) :request-method :get))))
+    (assoc (url {:server-name "rofl"})
+      :request-method :get
+      :kvlt.platform/timeout 2000))))

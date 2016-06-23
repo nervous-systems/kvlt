@@ -48,14 +48,20 @@
 
 (defn un-byte-array [x]
   #? (:clj  (map identity x)
-      :cljs (let [x (js/Int8Array. x)]
+      :cljs (if (= *target* "nodejs")
               (for [i (range (.. x -length))]
-                (aget x i)))))
+                (.readInt8 x i))
+              (let [x (js/Int8Array. x)]
+                (for [i (range (.. x -length))]
+                  (aget x i))))))
 
 (def hexagram-bytes [-2 -1 -40 52 -33 6])
 (def hexagram-byte-array
   #? (:clj  (byte-array hexagram-bytes)
-      :cljs (js/Int8Array. (clj->js hexagram-bytes))))
+      :cljs (if (= *target* "nodejs")
+              (js/Buffer.    (clj->js hexagram-bytes))
+              (js/Int8Array. (clj->js hexagram-bytes)))))
+
 (def byte-req
   {:url (str "http://localhost:" util/local-port "/echo/body?encoding=UTF-16")
    :method :post
@@ -101,10 +107,10 @@
 
 (defn json-req []
   (kvlt/request!
-   {:url (str "http://localhost:" util/local-port "/echo/body")
+   {:url    (str "http://localhost:" util/local-port "/echo/body")
     :method :post
-    :body "{\"x\": 1}"
-    :as :json}))
+    :body   "{\"x\": 1}"
+    :as     :json}))
 
 #? (:clj
     (deftest json-without
