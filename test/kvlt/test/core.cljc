@@ -14,6 +14,7 @@
         cljs.core.async) :as async :refer [<! >! #? (:clj go)]]
    [promesa.core :as p]))
 
+
 (deftest error-middleware-cooperates
   (util/with-result
     (p/branch (kvlt/request!
@@ -150,7 +151,7 @@
         (constantly nil)
         ex-data)
       (fn [{e :error}]
-        (is (= e :http-error))))))
+        (is= e :http-error)))))
 
 (deftest parse-error
   (let [request! (responder {:status 200 :body "..."})]
@@ -161,4 +162,15 @@
         (constantly nil)
         ex-data)
       (fn [{e :error}]
-        (is (= e :middleware-error))))))
+        (is= e :middleware-error)))))
+
+(deftest non-empty-head
+  (let [request! (responder
+                  {:status 200
+                   :body   #? (:clj (byte-array []) :cljs "")
+                   :headers {:content-length   200
+                             :content-encoding "gzip"}})]
+    (util/with-result (request! {:url "http://rofl" :method :head})
+      (fn [resp]
+        (is (empty? (resp :body)))
+        (is= (resp :status) 200)))))
