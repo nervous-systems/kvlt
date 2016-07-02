@@ -58,9 +58,11 @@
                       resp    {:headers headers
                                :status  (.. node-resp -statusCode)
                                :body    (maybe-encode buffer (req :as) headers)}]
+                  (log/debug "Received response\n" (util/pprint-str resp))
                   (respond resp)))))))))))
 
 (defn request! [req]
+  (log/debug "Issuing request\n" (util/pprint-str req))
   (if (= *target* "nodejs")
     (request-node! req)
     (xhr/request! req)))

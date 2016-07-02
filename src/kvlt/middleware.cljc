@@ -264,9 +264,8 @@ response's `:headers` values to keywords. "
   (lift-content-encoding resp))
 
 (defmw decompress
-  "Response body decompression.  Defaults request's
-  \"Accept-Encoding\" header.  Can be disabled per-request via
-  `:decompress-body? false'"
+  "Response body decompression.  Defaults request's \"Accept-Encoding\" header.
+  Can be disabled per-request via `:decompress-body? false'"
   ^{:removing :accept-encoding}
   (fn [req]
     (cond-> req
@@ -274,8 +273,9 @@ response's `:headers` values to keywords. "
            (not (header req :accept-encoding)))
       (header :accept-encoding "gzip, deflate")))
   (fn [resp]
-    (let [decomp? (-> resp meta :kvlt/request :decompress-body? true?)]
-      (cond-> resp (and decomp? (not-empty (resp :body))) decompress-body))))
+    #? (:clj  (let [decomp? (-> resp meta :kvlt/request :decompress-body? false? not)]
+                (cond-> resp (and decomp? (not-empty (resp :body))) decompress-body))
+        :cljs resp)))
 
 (def ^:no-doc unexceptional-status?
   #{200 201 202 203 204 205 206 207 300 301 302 303 304 307})

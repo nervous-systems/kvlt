@@ -77,7 +77,6 @@
         method  (name (or request-method :get))
         headers (clj->js (filter-headers headers))
         xhr     (req->xhr req)]
-    (log/debug "Issuing request\n" (util/pprint-str req))
     (p/promise
      (fn [resolve reject]
        (.listen xhr EventType.COMPLETE
