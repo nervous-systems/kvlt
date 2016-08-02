@@ -192,7 +192,7 @@
 
   Assumes placement before [[content-type]]."
   (fn [req]
-    (if-not (or (req :content-type) (header req :content-type))
+    (if (and (req :body) (not (or (req :content-type) (header req :content-type))))
       (assoc req :content-type :text/plain)
       req)))
 

@@ -107,8 +107,8 @@
   (assoc req :body (str "Let's play RTCW, " body)))
 
 (deftest default-content-type
-  (is= :text/plain (-> (mw-req mw/default-content-type)
-                       :content-type)))
+  (is= :text/plain ((mw-req mw/default-content-type :body "") :content-type))
+  (is (not (contains? (mw-req mw/default-content-type) :content-type))))
 
 (deftest content-type
   (is= "text/html"
