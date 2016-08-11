@@ -3,99 +3,66 @@
             [taoensso.timbre :as log]
             [clojure.string :as str]
             [kvlt.util :as util]
-            [promesa.core :as p])
-  (:import [goog.Uri]
-           [goog.net XmlHttp XmlHttpFactory EventType ErrorCode XhrIo]))
+            [promesa.core :as p]
+            [kvlt.platform.xhr :as xhr]
+            [kvlt.middleware.util :refer [charset]]))
+(defn ->response [req m]
+  (vary-meta m assoc :kvlt/request req))
 
-;; On Node, adjust goog.net.XmlHttp to use a factory which will
-;; instantiate the object provided by the "xmlhttprequest" NPM package
-(when-not (exists? js/XMLHttpRequest)
-  (let [xhr (js/require "xhr2")]
-    (defn NodeXhrFactory []
-      (this-as this (.call XmlHttpFactory this)))
+(defn error->map [e]
+  (let [code (or (keyword (.. e -code)) :unknown)]
+    {:type    code
+     :error   code
+     :message (.. e -message)
+     :status  0}))
 
-    (goog/inherits NodeXhrFactory XmlHttpFactory)
+(defn- compose-url [{:keys [query-string server-port] :as req}]
+  (str (name (req :scheme))
+       "://"
+       (req :server-name)
+       (when server-port
+         (str ":" server-port))
+       (req :uri)
+       (when query-string
+         (str "?" query-string))))
 
-    (set! (.. NodeXhrFactory -prototype -createInstance) #(xhr.))
-    (set!
-     (.. NodeXhrFactory -prototype -internalGetOptions)
-     (constantly #js {}))
+(defn req->node [{:keys [body kvlt.platform/timeout kvlt.platform/insecure?] :as req}]
+  (cond->
+      {:uri      (compose-url req)
+       :method   (-> req :request-method name str/upper-case)
+       :headers  (req :headers)
+       :encoding nil
+       :gzip     true}
+    body      (assoc :body body)
+    timeout   (assoc :timeout timeout)
+    insecure? (assoc :rejectUnauthorized false)))
 
-    (.setGlobalFactory XmlHttp (NodeXhrFactory.))))
+(defn- maybe-encode [buffer as headers]
+  (if (= as :byte-array)
+    buffer
+    (let [cs (-> headers :content-type charset)]
+      (.toString buffer cs))))
 
-(defn- tidy-http-error [{:keys [error-code error-text status] :as m}]
-  (-> m
-      (dissoc :error-text :error-code)
-      (assoc
-        :type    error-code
-        :error   error-code
-        :message error-text)))
+(when (= *target* "nodejs")
+  (let [request! (js/require "request")]
+    (defn request-node! [req]
+      (p/promise
+       (fn [resolve _]
+         (let [respond (comp resolve #(->response req %))]
+           (request!
+            (clj->js (req->node req))
+            (fn [error node-resp buffer]
+              (if error
+                (respond (error->map error))
+                (let [headers (js->clj (.. node-resp -headers) :keywordize-keys true)
+                      resp    {:headers headers
+                               :status  (.. node-resp -statusCode)
+                               :body    (maybe-encode buffer (req :as) headers)}]
+                  (log/debug "Received response\n" (util/pprint-str resp))
+                  (respond resp)))))))))))
 
-(defn req->url [{:keys [scheme server-name server-port uri query-string]}]
-  (str (doto (goog.Uri.)
-         (.setScheme (name (or scheme :http)))
-         (.setDomain server-name)
-         (.setPort server-port)
-         (.setPath uri)
-         (.setQuery query-string true))))
-
-(defn req->xhr
-  [{:keys [kvlt.platform/credentials? timeout as]
-    :or {timeout 0} :as request}]
-  (let [xhr (doto (XhrIo.)
-              (.setTimeoutInterval timeout)
-              (.setWithCredentials credentials?))]
-    (when (= as :byte-array)
-      (.setResponseType xhr (.. XhrIo -ResponseType -ARRAY_BUFFER)))
-    xhr))
-
-(def code->error
-  {0 :no-error
-   1 :access-denied
-   2 :file-not-found
-   3 :ff-silent-error
-   4 :custom-error
-   5 :exception
-   6 :http-error
-   7 :abort
-   8 :timeout
-   9 :offline})
-
-(defn headers->map [headers]
-  (reduce
-   #(let [[k v] (str/split %2 #":\s+")]
-      (if (or (str/blank? k) (str/blank? v))
-        %1 (assoc %1 (str/lower-case k) v)))
-   {} (str/split (or headers "") #"(\n)|(\r)|(\r\n)|(\n\r)")))
-
-(defn response->map [resp req]
-  (let [{:keys [status] :as m}
-        {:status     (.getStatus resp)
-         :success    (.isSuccess resp)
-         :body       (.getResponse resp)
-         :headers    (headers->map (.getAllResponseHeaders resp))
-         :error-code (code->error (.getLastErrorCode resp))
-         :error-text (.getLastError resp)}
-        m (-> m
-              (cond-> (= status 0) tidy-http-error)
-              (vary-meta assoc :kvlt/request req))]
-    (log/debug "Received response\n" (util/pprint-str m))
-    m))
-
-(defn filter-headers [m]
-  (into {}
-    (for [[k v] m
-          :when (not (#{:accept-encoding "accept-encoding"} k))]
-      [k v])))
-
-(defn request! [{:keys [request-method headers body credentials?] :as req}]
-  (let [url     (req->url req)
-        method  (name (or request-method :get))
-        headers (clj->js (filter-headers headers))
-        xhr     (req->xhr req)]
-    (log/debug "Issuing request\n" (util/pprint-str req))
-    (p/promise
-     (fn [resolve reject]
-       (.listen xhr EventType.COMPLETE
-                #(resolve (response->map (.. % -target) req)))
-       (.send xhr url method body headers)))))
+(defn request! [req]
+  (log/debug "Issuing request\n" (util/pprint-str req))
+  (if (= *target* "nodejs")
+    (request-node! req)
+    (xhr/request! req)))

@@ -13,11 +13,15 @@
   ([{hs :headers :as resp} k]
    (and hs (some hs [k (name k)])))
   ([m k v]
-   (assoc-in m [:headers (name k)] v)))
+   (update m :headers
+           (fn [h]
+             (-> h
+                 (dissoc k (name k))
+                 (assoc (name k) v))))))
 
 (defn- body->string [{:keys [body] :as resp}]
-  #? (:clj  (String. body (util/charset (header resp :content-type)))
-      :cljs body))
+  (platform.util/byte-array->str
+   body (util/charset (header resp :content-type))))
 
 (defmulti from-content-type
   "Used by [[as]] to transform an incoming response.  Dispatches on
@@ -108,10 +112,9 @@
 (defmethod as-type :auto [resp] (from-content-type resp))
 (defmethod as-type :default [{:keys [headers] :as resp}]
   (let [t    (header resp :content-type)
-        resp (assoc resp :orig-content-type t)
-        k    (cond-> :content-type (string? t) name)]
+        resp (assoc resp :orig-content-type t)]
     (from-content-type
-     (header resp k (util/->content-type (as-key resp))))))
+     (header resp :content-type (util/->content-type (as-key resp))))))
 
 (defn- parsing-error [resp e]
   (let [error (platform.util/exception->map
@@ -128,12 +131,12 @@
   (fn [resp]
     (try
       (as-type resp)
-      (catch #? (:clj Exception :cljs :default) e
+      (catch #? (:clj Exception :cljs js/Error) e
         (parsing-error resp e)))))
 
 (defmw accept-encoding
-  "Convert the `:accept-encoding` option (keyword/str, or collection
-  of) to an acceptable `Accept-Encoding` header.
+  "Convert the `:accept-encoding` option (keyword/str, or collection of) to an
+  acceptable `Accept-Encoding` header.
 
   This middleware is not likely to have any effect in a browser
   environment."
@@ -189,7 +192,7 @@
 
   Assumes placement before [[content-type]]."
   (fn [req]
-    (if-not (or (req :content-type) (header req :content-type))
+    (if (and (req :body) (not (or (req :content-type) (header req :content-type))))
       (assoc req :content-type :text/plain)
       req)))
 
@@ -261,9 +264,8 @@ response's `:headers` values to keywords. "
   (lift-content-encoding resp))
 
 (defmw decompress
-  "Response body decompression.  Defaults request's
-  \"Accept-Encoding\" header.  Can be disabled per-request via
-  `:decompress-body? false'"
+  "Response body decompression.  Defaults request's \"Accept-Encoding\" header.
+  Can be disabled per-request via `:decompress-body? false'"
   ^{:removing :accept-encoding}
   (fn [req]
     (cond-> req
@@ -271,8 +273,9 @@ response's `:headers` values to keywords. "
            (not (header req :accept-encoding)))
       (header :accept-encoding "gzip, deflate")))
   (fn [resp]
-    (let [decomp? (-> resp meta :kvlt/request :decompress-body? false? not)]
-      (cond-> resp decomp? decompress-body))))
+    #? (:clj  (let [decomp? (-> resp meta :kvlt/request :decompress-body? false? not)]
+                (cond-> resp (and decomp? (not-empty (resp :body))) decompress-body))
+        :cljs resp)))
 
 (def ^:no-doc unexceptional-status?
   #{200 201 202 203 204 205 206 207 300 301 302 303 304 307})

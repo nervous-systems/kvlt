@@ -20,7 +20,8 @@
         (util/channel-promise
          (go
            (<! (async/onto-chan ch numbers false))
-           (is= numbers (<! (async/into [] (async/take 10 ch))))))))))
+           (is= numbers (<! (async/into [] (async/take 10 ch))))
+           (async/close! ch)))))))
 
 (deftest websocket-channels
   (let [read-chan  (async/chan)
@@ -46,7 +47,8 @@
       (util/channel-promise
        (go
          (>! ch {:ok 1})
-         (is= {:ok 1} (<! ch)))))))
+         (is= {:ok 1} (<! ch))
+         (async/close! ch))))))
 
 (deftest websocket-host-error
   (util/is-http-error

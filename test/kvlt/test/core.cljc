@@ -14,6 +14,7 @@
         cljs.core.async) :as async :refer [<! >! #? (:clj go)]]
    [promesa.core :as p]))
 
+
 (deftest error-middleware-cooperates
   (util/with-result
     (p/branch (kvlt/request!
@@ -48,14 +49,20 @@
 
 (defn un-byte-array [x]
   #? (:clj  (map identity x)
-      :cljs (let [x (js/Int8Array. x)]
+      :cljs (if (= *target* "nodejs")
               (for [i (range (.. x -length))]
-                (aget x i)))))
+                (.readInt8 x i))
+              (let [x (js/Int8Array. x)]
+                (for [i (range (.. x -length))]
+                  (aget x i))))))
 
 (def hexagram-bytes [-2 -1 -40 52 -33 6])
 (def hexagram-byte-array
   #? (:clj  (byte-array hexagram-bytes)
-      :cljs (js/Int8Array. (clj->js hexagram-bytes))))
+      :cljs (if (= *target* "nodejs")
+              (js/Buffer.    (clj->js hexagram-bytes))
+              (js/Int8Array. (clj->js hexagram-bytes)))))
+
 (def byte-req
   {:url (str "http://localhost:" util/local-port "/echo/body?encoding=UTF-16")
    :method :post
@@ -101,10 +108,10 @@
 
 (defn json-req []
   (kvlt/request!
-   {:url (str "http://localhost:" util/local-port "/echo/body")
+   {:url    (str "http://localhost:" util/local-port "/echo/body")
     :method :post
-    :body "{\"x\": 1}"
-    :as :json}))
+    :body   "{\"x\": 1}"
+    :as     :json}))
 
 #? (:clj
     (deftest json-without
@@ -144,7 +151,7 @@
         (constantly nil)
         ex-data)
       (fn [{e :error}]
-        (is (= e :http-error))))))
+        (is= e :http-error)))))
 
 (deftest parse-error
   (let [request! (responder {:status 200 :body "..."})]
@@ -155,4 +162,15 @@
         (constantly nil)
         ex-data)
       (fn [{e :error}]
-        (is (= e :middleware-error))))))
+        (is= e :middleware-error)))))
+
+(deftest non-empty-head
+  (let [request! (responder
+                  {:status 200
+                   :body   #? (:clj (byte-array []) :cljs "")
+                   :headers {:content-length   200
+                             :content-encoding "gzip"}})]
+    (util/with-result (request! {:url "http://rofl" :method :head})
+      (fn [resp]
+        (is (empty? (resp :body)))
+        (is= (resp :status) 200)))))
