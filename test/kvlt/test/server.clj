@@ -152,4 +152,4 @@
   (http/start-server handler {:port (or port 5000)}))
 
 (defn -main [& [port]]
-  (start! (when port (Integer/parseInt port))))
+  (aleph.netty/wait-for-close (start! (when port (Integer/parseInt port)))))
