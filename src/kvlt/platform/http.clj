@@ -21,7 +21,7 @@
     m))
 
 (defn required-middleware [client]
-  #(client (aleph.http.client-middleware/decorate-url %)))
+  #(client (aleph.http.client-middleware/wrap-url %)))
 
 (def ^:private insecure-connection-pool
   (http/connection-pool {:connection-options {:insecure? true}

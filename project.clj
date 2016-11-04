@@ -17,7 +17,7 @@
 
                  [funcool/promesa     "1.1.1"]
                  [funcool/cats        "1.2.1"]
-                 [aleph               "0.4.1-beta5"]
+                 [aleph               "0.4.2-alpha8"]
                  [com.taoensso/timbre "4.5.0"]
                  [commons-codec/commons-codec "1.9"]]
   :plugins [[lein-npm       "0.6.0"]
