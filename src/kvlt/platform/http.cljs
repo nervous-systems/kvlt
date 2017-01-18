@@ -26,7 +26,7 @@
        (when query-string
          (str "?" query-string))))
 
-(defn req->node [{:keys [body kvlt.platform/timeout kvlt.platform/insecure?] :as req}]
+(defn req->node [{:keys [body json kvlt.platform/timeout kvlt.platform/insecure?] :as req}]
   (cond->
       {:uri      (compose-url req)
        :method   (-> req :request-method name str/upper-case)
@@ -34,6 +34,7 @@
        :encoding nil
        :gzip     true}
     body      (assoc :body body)
+    json      (assoc :json json)
     timeout   (assoc :timeout timeout)
     insecure? (assoc :rejectUnauthorized false)))
 
