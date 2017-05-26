@@ -6,11 +6,6 @@
             [kvlt.platform.http :as http]
             [kvlt.platform.util :as platform.util]
             [kvlt.test.util :as util #?(:clj :refer :cljs :refer-macros) [deftest after-> is=]]
-            [cats.core :as m]
-            [#? (:clj
-                 clojure.core.async
-                 :cljs
-                 cljs.core.async) :as async :refer [<! >!]]
             [promesa.core :as p]
             #? (:clj [manifold.stream])))
 

@@ -2,11 +2,8 @@
   (:require [promesa.core :as p]
             [cats.core]
             #? (:clj  [clojure.test :refer [is]]
-                :cljs [cljs.test :refer-macros [is]])
-            #? (:clj  [clojure.core.async :as async :refer [<!! go alt!]]
-                :cljs [cljs.core.async :as async :refer [<!]]))
-  #? (:cljs (:require-macros [kvlt.test.util :refer [is=]]
-                             [cljs.core.async.macros :refer [go alt!]])))
+                :cljs [cljs.test :refer-macros [is]]))
+  #? (:cljs (:require-macros [kvlt.test.util :refer [is=]])))
 
 (def local-port 5000) ;; env this
 (def local-event-port 5001)
@@ -52,17 +49,6 @@
                   (done#))))))
         `(clojure.test/deftest ~t-name
            (-> (do ~@forms) promise* deref)))))
-
-(defn channel-promise [ch]
-  (p/promise
-   (fn [resolve reject]
-     (go
-       (let [timeout (async/timeout (* 20 1000))
-             result  (alt! timeout ::timeout ch ([v] v))]
-         (async/close! ch)
-         (if (= result ::timeout)
-           (reject (ex-info "timeout" {}))
-           (resolve result)))))))
 
 (defn with-result [m f]
   #? (:clj

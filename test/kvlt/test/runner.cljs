@@ -3,8 +3,6 @@
             [kvlt.test.core]
             [kvlt.test.middleware]
             [kvlt.test.middleware.params]
-            [kvlt.test.platform.websocket]
-            [kvlt.test.platform.event-source]
             [kvlt.test.platform.http]
             [taoensso.timbre :as log]))
 
@@ -22,6 +20,4 @@
  'kvlt.test.core
  'kvlt.test.middleware
  'kvlt.test.middleware.params
- 'kvlt.test.platform.websocket
- 'kvlt.test.platform.event-source
  'kvlt.test.platform.http)

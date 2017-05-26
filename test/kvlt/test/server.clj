@@ -1,6 +1,5 @@
 (ns kvlt.test.server
-  (:require [clojure.core.async :as async :refer [<! >! go]]
-            [aleph.http :as http]
+  (:require [aleph.http :as http]
             [manifold.stream :as stream]
             [manifold.time]
             [manifold.deferred :as d]

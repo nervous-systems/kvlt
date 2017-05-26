@@ -1,6 +1,5 @@
 (ns ^:no-doc kvlt.platform.xhr
-  (:require [cljs.core.async :as async]
-            [taoensso.timbre :as log]
+  (:require [taoensso.timbre :as log]
             [clojure.string :as str]
             [kvlt.util :as util]
             [promesa.core :as p])

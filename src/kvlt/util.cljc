@@ -1,8 +1,6 @@
 (ns ^:no-doc kvlt.util
   (:require
    [clojure.string :as str]
-   #? (:clj  [clojure.core.async.impl.protocols :as p]
-       :cljs [cljs.core.async.impl.protocols :as p])
    #? (:clj  [clojure.pprint :as pprint]
        :cljs [cljs.pprint :as pprint]))
   #? (:cljs (:require-macros [kvlt.util])))
@@ -20,38 +18,6 @@
       (if-not (identical? +none+ found)
         (assoc m key (apply f found args))
         m))))
-
-;; Taken from Chord, more or less
-(defn bidirectional-chan
-  [read-ch write-ch & [{:keys [on-close close?] :or {close? true}}]]
-  (reify
-    p/ReadPort
-    (take! [_ handler]
-      (p/take! read-ch handler))
-
-    p/WritePort
-    (put! [_ msg handler]
-      (p/put! write-ch msg handler))
-
-    p/Channel
-    (close! [_]
-      (when close?
-        (p/close! read-ch)
-        (p/close! write-ch))
-      (when on-close
-        (on-close)))))
-
-(defn read-proxy-chan [read-ch on-close & [{:keys [close?] :or {close? true}}]]
-  (reify
-    p/ReadPort
-    (take! [_ handler]
-      (p/take! read-ch handler))
-
-    p/Channel
-    (close! [_]
-      (on-close)
-      (when close?
-        (p/close! read-ch)))))
 
 (defn pprint-str [x]
   (str/trimr (with-out-str (pprint/pprint x))))

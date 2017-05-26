@@ -7,11 +7,6 @@
    [clojure.walk :refer [keywordize-keys]]
    [kvlt.test.util :as util
     #?(:clj :refer :cljs :refer-macros) [deftest is=]]
-   [cats.core :as m]
-   [#? (:clj
-        clojure.core.async
-        :cljs
-        cljs.core.async) :as async :refer [<! >! #? (:clj go)]]
    [promesa.core :as p]))
 
 

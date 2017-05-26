@@ -1,4 +1,4 @@
-(defproject io.nervous/kvlt "0.1.4"
+(defproject io.nervous/kvlt "0.2.0-SNAPSHOT"
   :url "https://github.com/nervous-systems/kvlt"
   :description "Multi-target Clojure/script HTTP client"
   :license {:name "Unlicense" :url "http://unlicense.org/UNLICENSE"}
@@ -13,10 +13,9 @@
   :source-paths ["src"]
   :dependencies [[org.clojure/clojure        "1.8.0"]
                  [org.clojure/clojurescript  "1.8.51"]
-                 [org.clojure/core.async     "0.2.395"]
 
-                 [funcool/promesa     "1.6.0"]
-                 [funcool/cats        "2.0.0"]
+                 [funcool/promesa     "1.8.1"]
+                 [funcool/cats        "2.1.0"]
                  [aleph               "0.4.2-alpha8"]
                  [com.taoensso/timbre "4.7.4"]
                  [commons-codec/commons-codec "1.9"]]
@@ -25,8 +24,6 @@
             [lein-doo       "0.1.7"]
             [lein-codox     "0.10.1"]]
   :npm {:dependencies [[request            "2.72.0"]
-                       [websocket          "1.0.22"]
-                       [eventsource        "0.1.6"]
                        [source-map-support "0.4.0"]]}
   :cljsbuild {:builds
               [{:id "node-test"
