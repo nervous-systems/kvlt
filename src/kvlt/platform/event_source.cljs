@@ -12,7 +12,8 @@
   (if (exists? js/EventSource)
     (js/EventSource. url)
     (try
-      (@eventsource-node. url)
+      (let [es @eventsource-node]
+        (es. url))
       (catch js/Error e
         (log/error "EventSource is not available")
         (throw e)))))

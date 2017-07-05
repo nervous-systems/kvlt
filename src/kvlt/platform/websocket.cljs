@@ -14,7 +14,8 @@
   (if (exists? js/WebSocket)
     (js/WebSocket. url)
     (try
-      (@websocket-node. url)
+      (let [ws @websocket-node]
+        (ws. url))
       (catch js/Error e
         (log/error "WebSocket is not available")
         (throw e)))))
