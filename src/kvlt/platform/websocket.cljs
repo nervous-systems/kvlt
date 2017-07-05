@@ -6,10 +6,19 @@
             [promesa.core :as p])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
+;; delay the require so that code running in browsers without
+;; WebSocket will fail only if it actually tries to use it.
+(def websocket (delay
+                 (try
+                   (.. (js/require "websocket") -w3cwebsocket)
+                   (catch js/Error e
+                     (log/error "WebSocket is not available")
+                     (throw e)))))
+
 (def WebSocket
   (if (exists? js/WebSocket)
-    js/WebSocket
-    (.. (js/require "websocket") -w3cwebsocket)))
+    (delay js/WebSocket)
+    websocket))
 
 (defn- ws->chan! [ws chan format]
   (set! (.. ws -onmessage) #(async/put! chan (format-incoming format (.. % -data)))))
@@ -28,7 +37,7 @@
       (ex-info reason {:message reason :error code :type code :status 0}))))
 
 (defn request! [url & [{:keys [read-chan format write-chan close?] :or {close? true}}]]
-  (let [ws   (WebSocket. url)
+  (let [ws   (let [ws @WebSocket] (ws. url))
         in   (or read-chan  (async/chan))
         out  (or write-chan (async/chan))
         chan (util/bidirectional-chan in out {:on-close #(.close ws) :close? close?})
