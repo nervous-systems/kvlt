@@ -8,17 +8,16 @@
 
 ;; delay the require so that code running in browsers without
 ;; WebSocket will fail only if it actually tries to use it.
-(def websocket (delay
-                 (try
-                   (.. (js/require "websocket") -w3cwebsocket)
-                   (catch js/Error e
-                     (log/error "WebSocket is not available")
-                     (throw e)))))
+(def websocket-node (delay (.. (js/require "websocket") -w3cwebsocket)))
 
-(def WebSocket
+(defn websocket [url]
   (if (exists? js/WebSocket)
-    (delay js/WebSocket)
-    websocket))
+    (js/WebSocket. url)
+    (try
+      (@websocket-node. url)
+      (catch js/Error e
+        (log/error "WebSocket is not available")
+        (throw e)))))
 
 (defn- ws->chan! [ws chan format]
   (set! (.. ws -onmessage) #(async/put! chan (format-incoming format (.. % -data)))))
@@ -37,7 +36,7 @@
       (ex-info reason {:message reason :error code :type code :status 0}))))
 
 (defn request! [url & [{:keys [read-chan format write-chan close?] :or {close? true}}]]
-  (let [ws   (let [ws @WebSocket] (ws. url))
+  (let [ws   (websocket url)
         in   (or read-chan  (async/chan))
         out  (or write-chan (async/chan))
         chan (util/bidirectional-chan in out {:on-close #(.close ws) :close? close?})

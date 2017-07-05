@@ -6,17 +6,16 @@
 
 ;; delay the require so that code running in browsers without
 ;; EventSource (SSE) will fail only if it actually tries to use SSE.
-(def eventsource (delay
-                   (try
-                     (js/require "eventsource")
-                     (catch js/Error e
-                       (log/error "EventSource is not available")
-                       (throw e)))))
+(def eventsource-node (delay (js/require "eventsource")))
 
-(def EventSource
+(defn event-source [url]
   (if (exists? js/EventSource)
-    (delay js/EventSource)
-    eventsource))
+    (js/EventSource. url)
+    (try
+      (@eventsource-node. url)
+      (catch js/Error e
+        (log/error "EventSource is not available")
+        (throw e)))))
 
 (defn event->map [e format]
   (format-event
@@ -38,7 +37,7 @@
   [url & [{:keys [events format chan close?]
            :or {events #{:message} format :string close? true}}]]
   (let [chan   (or chan (async/chan))
-        source (let [es @EventSource] (es. url))]
+        source (event-source url)]
     (add-listeners! source chan events format)
     (set! (.. source -onerror)
           (fn [_]
