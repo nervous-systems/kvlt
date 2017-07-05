@@ -4,10 +4,19 @@
             [taoensso.timbre :as log]
             [kvlt.util :as util]))
 
-(def EventSource
+;; delay the require so that code running in browsers without
+;; EventSource (SSE) will fail only if it actually tries to use SSE.
+(def eventsource-node (delay (js/require "eventsource")))
+
+(defn event-source [url]
   (if (exists? js/EventSource)
-    js/EventSource
-    (js/require "eventsource")))
+    (js/EventSource. url)
+    (try
+      (let [es @eventsource-node]
+        (es. url))
+      (catch js/Error e
+        (log/error "EventSource is not available")
+        (throw e)))))
 
 (defn event->map [e format]
   (format-event
@@ -29,7 +38,7 @@
   [url & [{:keys [events format chan close?]
            :or {events #{:message} format :string close? true}}]]
   (let [chan   (or chan (async/chan))
-        source (EventSource. url)]
+        source (event-source url)]
     (add-listeners! source chan events format)
     (set! (.. source -onerror)
           (fn [_]
