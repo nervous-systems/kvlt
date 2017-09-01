@@ -8,15 +8,16 @@
 ;; EventSource (SSE) will fail only if it actually tries to use SSE.
 (def eventsource-node (delay (js/require "eventsource")))
 
-(defn event-source [url]
-  (if (exists? js/EventSource)
-    (js/EventSource. url)
-    (try
-      (let [es @eventsource-node]
-        (es. url))
-      (catch js/Error e
-        (log/error "EventSource is not available")
-        (throw e)))))
+(defn event-source [url options]
+  (let [js-options (clj->js options)]
+    (if (exists? js/EventSource)
+      (js/EventSource. url js-options)
+      (try
+        (let [es @eventsource-node]
+          (es. url js-options))
+        (catch js/Error e
+          (log/error "EventSource is not available")
+          (throw e))))))
 
 (defn event->map [e format]
   (format-event
@@ -35,10 +36,10 @@
          (.close source))))))
 
 (defn request!
-  [url & [{:keys [events format chan close?]
-           :or {events #{:message} format :string close? true}}]]
+  [url & [{:keys [events format chan close? options]
+           :or {events #{:message} format :string close? true options {}}}]]
   (let [chan   (or chan (async/chan))
-        source (event-source url)]
+        source (event-source url options)]
     (add-listeners! source chan events format)
     (set! (.. source -onerror)
           (fn [_]

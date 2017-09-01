@@ -89,14 +89,21 @@
   re-established.
 
   `as` is some symbolic value (defaulting to `:string` - no-op) which
-  is used as [[kvlt.event-source/format-event]]'s dispatch value.  ```
+  is used as [[kvlt.event-source/format-event]]'s dispatch value.
+
+  `options` is a map containing key/value options to pass to the
+  underlying implementation.  The accepted options vary by platform, but
+  a typical use is to pass additional headers to the request.  For example,
+  {:headers {\"Cookie\" \"test=test\"}} to add a cookie to the request.
   "
-  [url & [{:keys [events as chan close?]
+  [url & [{:keys [events as chan close? options]
            :or {events #{:message}
                 as     :string
-                close? true}}]]
+                close? true
+                options {}}}]]
   (platform.event-source/request!
    url {:events events
         :format as
         :chan   chan
-        :close? close?}))
+        :close? close?
+        :options options}))

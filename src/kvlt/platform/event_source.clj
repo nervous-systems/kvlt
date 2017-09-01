@@ -65,25 +65,26 @@
 (def ^:private sse-pool
   (http/connection-pool {:middleware required-middleware}))
 
-(defn sse-req [url]
+(defn sse-req [url {:keys [headers] :as options}]
   (default-request
    {:url url
     :raw-stream? true
     :request-method :get
-    :headers {"cache-control" "no-cache"
-              "accept" "text/event-stream"
-              "connection" "keep-alive"}}
+    :headers (merge {"cache-control" "no-cache"
+                     "accept" "text/event-stream"
+                     "connection" "keep-alive"}
+                    headers)}
    sse-pool))
 
 (defn request!
-  [url & [{:keys [events format chan close?]
+  [url & [{:keys [events format chan close? options]
            :or {events #{:message} format :default close? true}}]]
   (let [events (cond->> events (coll? events) (into #{}))
         stream (s/stream)
         chan   (or chan (async/chan))]
     (s/connect stream chan {:downstream? close? :upstream? true})
     (d/on-realized
-     (http/request (sse-req url))
+     (http/request (sse-req url options))
      (fn [resp]
        (let [events (http-response->events resp events format)]
          (s/on-closed stream #(s/close! (:body resp)))
