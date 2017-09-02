@@ -17,7 +17,7 @@
              (is= "A bunch of\n events " data)
              (is (nil? id)))))
 
-(deftest ^{:kvlt/skip #{:phantom}} header-events
+(deftest ^{:kvlt/skip #{:phantom :browser}} header-events
          (util/with-result
            (util/channel-promise (event-source/request! local-url
                                                         {:events #{:header}
