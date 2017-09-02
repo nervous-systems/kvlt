@@ -11,11 +11,20 @@
 (def local-url (str "http://localhost:" 5000 "/events"))
 
 (deftest ^{:kvlt/skip #{:phantom}} message-events
-  (util/with-result
-    (util/channel-promise (event-source/request! local-url))
-    (fn [{:keys [data id] :as m}]
-      (is= "A bunch of\n events " data)
-      (is (nil? id)))))
+         (util/with-result
+           (util/channel-promise (event-source/request! local-url))
+           (fn [{:keys [data id] :as m}]
+             (is= "A bunch of\n events " data)
+             (is (nil? id)))))
+
+(deftest ^{:kvlt/skip #{:phantom}} header-events
+         (util/with-result
+           (util/channel-promise (event-source/request! local-url
+                                                        {:events #{:header}
+                                                         :options {:headers {"x-kvlt-test" "ok"}}}))
+           (fn [{:keys [data id] :as m}]
+             (is= "ok" data)
+             (is (nil? id)))))
 
 (deftest ^{:kvlt/skip #{:phantom}} odd-events
   (util/with-result
