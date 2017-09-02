@@ -92,15 +92,16 @@
   is used as [[kvlt.event-source/format-event]]'s dispatch value.
 
   `options` is a map containing key/value options to pass to the
-  underlying implementation. A typical case is to pass additional
-  headers to the request.  For example, set options to:
+  underlying implementation. A cookie can be added to the request,
+  for example, by setting `options` to:
 
       {:headers {\"Cookie\" \"test=test\"}}
 
-  to add a cookie to the request. Note that the accepted options vary
-  by platform. Clojure only supports :headers. Consult the API specs
-  for [browsers](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/EventSource)
-  and for [node](https://www.npmjs.com/package/eventsource).
+  for Clojure and Node environments. The accepted options vary by
+  platform, with unknown options being silently ignored. Clojure
+  only supports `:headers`. Consult [browser](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/EventSource)
+  and [node](https://www.npmjs.com/package/eventsource) API
+  specifications for details.
   "
   [url & [{:keys [events as chan close? options]
            :or {events #{:message}
