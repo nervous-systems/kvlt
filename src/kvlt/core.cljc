@@ -89,14 +89,28 @@
   re-established.
 
   `as` is some symbolic value (defaulting to `:string` - no-op) which
-  is used as [[kvlt.event-source/format-event]]'s dispatch value.  ```
+  is used as [[kvlt.event-source/format-event]]'s dispatch value.
+
+  `options` is a map containing key/value options to pass to the
+  underlying implementation. A cookie can be added to the request,
+  for example, by setting `options` to:
+
+      {:headers {\"Cookie\" \"test=test\"}}
+
+  for Clojure and Node environments. The accepted options vary by
+  platform, with unknown options being silently ignored. Clojure
+  only supports `:headers`. Consult [browser](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/EventSource)
+  and [node](https://www.npmjs.com/package/eventsource) API
+  specifications for details.
   "
-  [url & [{:keys [events as chan close?]
+  [url & [{:keys [events as chan close? options]
            :or {events #{:message}
                 as     :string
-                close? true}}]]
+                close? true
+                options {}}}]]
   (platform.event-source/request!
    url {:events events
         :format as
         :chan   chan
-        :close? close?}))
+        :close? close?
+        :options options}))

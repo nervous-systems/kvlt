@@ -17,6 +17,15 @@
       (is= "A bunch of\n events " data)
       (is (nil? id)))))
 
+(deftest ^{:kvlt/skip #{:phantom :browser}} header-events
+  (util/with-result
+    (util/channel-promise (event-source/request! local-url
+                                                 {:events #{:header}
+                                                  :options {:headers {"x-kvlt-test" "ok"}}}))
+    (fn [{:keys [data id] :as m}]
+      (is= "ok" data)
+      (is (nil? id)))))
+
 (deftest ^{:kvlt/skip #{:phantom}} odd-events
   (util/with-result
     (util/channel-promise

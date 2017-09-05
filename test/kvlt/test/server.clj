@@ -48,6 +48,9 @@
         send!  #(stream/put! stream (apply str %&))]
     (send! "data: A bunch of\r\ndata: ")
     (send! " events \n\nHorseshit\n\n")
+    (when-let [x-kvlt-test (get-in req [:headers "x-kvlt-test"])]
+      (send! "event: header\n")
+      (send! "data: " x-kvlt-test "\r\n\r\n"))
     (d/loop [i 0]
       (if (< i 100)
         (do
