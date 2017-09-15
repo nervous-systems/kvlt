@@ -79,7 +79,8 @@
 
   By default, only events of type `:message` will be considered (per
   spec).  To listen to a set of specific event types, `events` (a set
-  of keywords) may be specified.
+  of keywords) may be specified.  You may also specify `:*` to receive
+  all events.
 
   The returned channel, when closed, will terminate the underlying SSE
   connection.  By default, the channel is unbuffered - though an
@@ -97,9 +98,10 @@
 
       {:headers {\"Cookie\" \"test=test\"}}
 
-  for Clojure and Node environments. The accepted options vary by
-  platform, with unknown options being silently ignored. Clojure
-  only supports `:headers`. Consult [browser](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/EventSource)
+  for the Clojure environment. The header names can be specified
+  as strings or keywords.  The accepted options vary by
+  platform, with unknown options being silently ignored.
+  Consult [browser](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/EventSource)
   and [node](https://www.npmjs.com/package/eventsource) API
   specifications for details.
   "

@@ -8,7 +8,8 @@
             [manifold.deferred :as d]
             [clojure.string :as str]
             [byte-streams]
-            [clojure.core.async :as async]))
+            [clojure.core.async :as async]
+            [clojure.walk :as walk]))
 
 (defn span->kv [lines]
   (for [line lines
@@ -41,7 +42,7 @@
   (let [out     (s/stream)
         lines   (s/mapcat (comp split-after-newline byte-streams/to-string) body)
         output! (fn [{:keys [type id] :as e} last-id]
-                  (if (and e (events type))
+                  (if (and e (or (events type) (contains? events :*)))
                     (s/put! out (assoc e :id (or id last-id)))
                     (d/success-deferred true)))]
     (d/loop [last-id nil span [] line nil]
@@ -62,10 +63,14 @@
                (d/recur last-id (conj span (str line chunk)) nil))))))
     out))
 
+(def ^:private insecure-sse-pool
+  (http/connection-pool {:connection-options {:insecure? true}
+                         :middleware         required-middleware}))
+
 (def ^:private sse-pool
   (http/connection-pool {:middleware required-middleware}))
 
-(defn sse-req [url {:keys [headers] :as options}]
+(defn sse-req [url {:keys [headers :kvlt.platform/insecure?] :as options}]
   (default-request
    {:url url
     :raw-stream? true
@@ -73,8 +78,8 @@
     :headers (merge {"cache-control" "no-cache"
                      "accept" "text/event-stream"
                      "connection" "keep-alive"}
-                    headers)}
-   sse-pool))
+                    (walk/stringify-keys headers))}
+   (if insecure? insecure-sse-pool sse-pool)))
 
 (defn request!
   [url & [{:keys [events format chan close? options]
