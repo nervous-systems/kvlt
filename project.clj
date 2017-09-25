@@ -11,14 +11,14 @@
     ~(read-string (slurp "codox-transforms.edn"))}
    :source-uri "https://github.com/nervous-systems/kvlt/blob/master/{filepath}#L{line}"}
   :source-paths ["src"]
-  :dependencies [[org.clojure/clojure        "1.8.0"]
-                 [org.clojure/clojurescript  "1.8.51"]
-                 [org.clojure/core.async     "0.2.395"]
+  :dependencies [[org.clojure/clojure         "1.8.0"]
+                 [org.clojure/clojurescript   "1.8.51"]
+                 [org.clojure/core.async      "0.3.443"]
 
-                 [funcool/promesa     "1.8.1"]
-                 [funcool/cats        "2.1.0"]
-                 [aleph               "0.4.2-alpha8"]
-                 [com.taoensso/timbre "4.7.4"]
+                 [funcool/promesa             "1.8.1"]
+                 [funcool/cats                "2.1.0"]
+                 [aleph                       "0.4.3"]
+                 [com.taoensso/timbre         "4.10.0"]
                  [commons-codec/commons-codec "1.9"]]
   :plugins [[lein-npm       "0.6.2"]
             [lein-cljsbuild "1.1.4"]
