@@ -19,7 +19,7 @@
                  [funcool/cats                "2.1.0"]
                  [aleph                       "0.4.3"]
                  [com.taoensso/timbre         "4.10.0"]
-                 [commons-codec/commons-codec "1.9"]]
+                 [commons-codec/commons-codec "1.10"]]
   :plugins [[lein-npm       "0.6.2"]
             [lein-cljsbuild "1.1.4"]
             [lein-doo       "0.1.7"]
