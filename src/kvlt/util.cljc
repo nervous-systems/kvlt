@@ -56,16 +56,17 @@
 (defn pprint-str [x]
   (str/trimr (with-out-str (pprint/pprint x))))
 
+(defn examples->str [examples]
+  (str "\n\n```clojure\n"
+       (str/join
+         "\n\n"
+         (for [[before after] examples]
+           (cond-> (pprint-str before)
+                   after (str "\n  =>\n" (pprint-str after)))))
+       "\n```"))
+
 (defn doc-examples! [vvar examples]
-  (alter-meta!
-   vvar update :doc str
-   "\n\n```clojure\n"
-   (str/join
-    "\n\n"
-    (for [[before after] examples]
-      (cond-> (pprint-str before)
-        after (str "\n  =>\n" (pprint-str after)))))
-   "\n```"))
+  (alter-meta! vvar update :doc str (examples->str examples)))
 
 #? (:clj
     (defmacro fn-when [[binding] & body]
@@ -75,4 +76,4 @@
 
 #? (:clj
     (defmacro with-doc-examples! [vvar & examples]
-      `(doc-examples! #'~vvar (quote ~examples))))
+      `(alter-meta! #'~vvar update :doc str ~(examples->str examples))))
