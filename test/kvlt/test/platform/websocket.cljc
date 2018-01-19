@@ -73,3 +73,18 @@
           (let [{:keys [kvlt.platform/stream]} (meta ch)]
             (async/close! ch)
             (is (manifold.stream/closed? stream)))))))
+
+#? (:clj
+    (deftest websocket-max-frame-payload
+      (util/with-result
+        (websocket/request!
+          (str "ws://localhost:" util/local-port "/ws-echo")
+          {:kvlt.platform/max-frame-payload 1})
+        (fn [ch]
+          (let [{:keys [kvlt.platform/stream]} (meta ch)]
+            (util/channel-promise
+              (go
+                (>! ch "longer than one")
+                (<! ch)
+                (is (manifold.stream/closed? stream))
+                (async/close! ch))))))))

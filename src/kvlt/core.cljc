@@ -63,6 +63,9 @@
   websocket itself.  The `read-chan` and `write-chan` options can be
   specified to e.g. apply a transducer to incoming/outgoing values.
 
+  Platform specific options, such as `max-frame-payload` for Clojure, can be
+  specified as keywords in the `kvlt.platform` namespace.
+
   Closing the returned channel terminates the websocket connection,
   and will close the underlying read & write channels (unless `close?`
   is false, in which event it'll close neither).  The channel will be

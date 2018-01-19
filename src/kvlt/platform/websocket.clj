@@ -15,18 +15,22 @@
    r
    {:downstream? close?}))
 
-(defn request! [url & [{:keys [read-chan write-chan close? format] :or {close? true}}]]
-  (let [read  (or read-chan  (async/chan))
-        write (or write-chan (async/chan))]
+(defn request! [url & [{:keys [read-chan write-chan close? format kvlt.platform/max-frame-payload]
+                        :or   {close? true}}]]
+  (let [read    (or read-chan  (async/chan))
+        write   (or write-chan (async/chan))
+        ws-opts (merge {}
+                       (when max-frame-payload
+                         {:max-frame-payload max-frame-payload}))]
     (p/promise
      (fn [resolve reject]
        (deferred/on-realized
-         (http/websocket-client url)
+         (http/websocket-client url ws-opts)
          (fn [stream]
            (let [chan (util/bidirectional-chan
                        read write
                        {:on-close #(manifold.stream/close! stream)
-                        :close? close?})]
+                        :close?   close?})]
              (connect-chans stream read write format close?)
              (-> chan
                  (vary-meta assoc :kvlt.platform/stream stream)
